@@ -6,7 +6,7 @@ de datos analíticos de Coursera hacia Google Sheets.
 ## Descripción
 
 La UNAM ofrece cursos MOOC a través de Coursera. Mensualmente
-se descarga un archivo Excel con datos analíticos de cada curso.
+se descarga un archivo de analíticos con datos de cada curso.
 Este script automatiza la importación, almacenamiento histórico
 y consulta de esos datos sin trabajo manual.
 
@@ -27,21 +27,31 @@ siguientes pestañas:
 - Lectura de parámetros desde la pestaña Configuración
 (mes, año y carpeta de Drive).
 
-### Fase 2 — Lectura del archivo Excel
+### Fase 2 — Lectura del archivo de analíticos
 - Acceso a carpeta en Google Drive.
 - Validación de archivos disponibles.
-- Conversión temporal de Excel a Google Sheets para lectura.
+- Apertura directa del archivo en formato Google Sheets.
 - Extracción de encabezados y datos de las 25 columnas.
 - Registro de eventos en Log_Importación.
+- Variable global `CARPETA_RAIZ` para centralizar
+la configuración de rutas.
+
+### Fase 3 — Relación de cursos
+- Cruce de nombres de cursos entre el archivo de Coursera
+y la tabla estructural de MOOC Coursera.
+- Detección y registro de incompatibilidades en Log_Importación.
+- Validación exitosa: 154 cursos relacionados, 0 incompatibilidades
+tras corrección de nombres.
+
 
 ## Tecnologías
 - Google Apps Script (JavaScript)
 - Google Sheets
-- Google Drive API v2
+- Google Drive
 
 ## Uso
-1. Subir el archivo Excel de Coursera a la carpeta
-   `UNAM_Coursera_Analiticas/Archivos_Mensuales` en Drive.
+1. Subir el archivo de analíticos de Coursera en formato
+   Google Sheets a la carpeta `Archivos_Mensuales` en Drive.
 2. Actualizar las celdas B1 (mes) y B2 (año) en la pestaña
-   Configuración del archivo de Sheets.
+   `Configuración` del archivo de Sheets.
 3. Ejecutar el script desde el editor de Apps Script.
