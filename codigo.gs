@@ -103,4 +103,47 @@ function relacionarCursos() {
   });
 }
 
+function escribirDatosMensuales() {
+  const hoja = SpreadsheetApp.getActiveSpreadsheet();
+  const config = hoja.getSheetByName("Configuración");
+  const log = hoja.getSheetByName("Log_Importación");
+  const datosMensuales = hoja.getSheetByName("Datos_Mensuales");
+
+  const mes = config.getRange("B1").getValue();
+  const anio = config.getRange("B2").getValue();
+
+  // Verificar si ya existen datos de este mes y año
+  const datosExistentes = datosMensuales.getDataRange().getValues();
+  for (let i = 1; i < datosExistentes.length; i++) {
+    if (datosExistentes[i][0] === mes && datosExistentes[i][1] === anio) {
+      console.log("Ya existen datos para " + mes + " " + anio + ". Importación cancelada.");
+      log.appendRow([new Date(), "ADVERTENCIA", "Ya existen datos para " + mes + " " + anio]);
+      return;
+    }
+  }
+
+  // Abrir archivo de Coursera
+  const carpetaRaiz = DriveApp.getFoldersByName(CARPETA_RAIZ).next();
+  const carpetaMensual = carpetaRaiz.getFoldersByName("Archivos_Mensuales").next();
+  const archivos = carpetaMensual.getFilesByType(MimeType.GOOGLE_SHEETS);
+  const archivo = archivos.next();
+  const hojaDatos = SpreadsheetApp.openById(archivo.getId()).getSheets()[0];
+  const datosExcel = hojaDatos.getDataRange().getValues();
+
+  // Preparar filas en memoria — saltando filas sin nombre de curso
+  const filasParaEscribir = [];
+  for (let i = 1; i < datosExcel.length; i++) {
+    const fila = datosExcel[i];
+    if (fila[1] === "" || fila[1] === null) continue;
+    filasParaEscribir.push([mes, anio, ...fila.slice(1)]);
+  }
+
+  // Escribir todas las filas de una sola vez
+  const ultimaFila = datosMensuales.getLastRow() + 1;
+  datosMensuales.getRange(ultimaFila, 1, filasParaEscribir.length, filasParaEscribir[0].length)
+    .setValues(filasParaEscribir);
+
+  console.log("Filas escritas: " + filasParaEscribir.length);
+  log.appendRow([new Date(), "OK", "Importación completada: " + filasParaEscribir.length + " cursos | Período: " + mes + " " + anio]);
+}
 
