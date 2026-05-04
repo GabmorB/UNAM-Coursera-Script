@@ -1,64 +1,50 @@
+const CARPETA_RAIZ = "UNAM_Coursera_Analiticas_Test";
+
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
   ui.createMenu('MOOC Coursera')
-    .addItem('Subir archivo datos mensuales a sheets', 'escribirDatosMensuales')
+    .addItem('Importar datos a Sheets', 'escribirDatosMensuales')
     .addSeparator()
-    .addItem('Verificar si hay archivo en carpeta de Drive', 'leerArchivoExcel')
-    .addItem('Mostrar número de cursos en archivo', 'relacionarCursos')
+    .addItem('Verificar archivo en Drive', 'leerArchivoExcel')
+    .addItem('Mostrar cursos en archivo', 'relacionarCursos')
     .addToUi();
 }
 
-const CARPETA_RAIZ = "UNAM_Coursera_Analiticas_Test";
-
 function leerArchivoExcel() {
   const hoja = SpreadsheetApp.getActiveSpreadsheet();
-  const config = hoja.getSheetByName("Configuración");
-  const mes = config.getRange("B1").getValue();
-  const anio = config.getRange("B2").getValue();
   const log = hoja.getSheetByName("Log_Importación");
 
   const carpetaRaiz = DriveApp.getFoldersByName(CARPETA_RAIZ).next();
-  const carpetaMensual = carpetaRaiz.getFoldersByName("Archivos_Mensuales").next();
-  const archivos = carpetaMensual.getFilesByType(MimeType.GOOGLE_SHEETS);
+  const carpetas = ["Archivos_Mensuales", "Archivos_Trimestrales", "Archivos_Anuales"];
 
-  let contador = 0;
   let archivo = null;
+  let contador = 0;
+  let carpetaUsada = null;
 
-  while (archivos.hasNext()) {
-    archivo = archivos.next();
-    contador++;
+  for (const nombreCarpeta of carpetas) {
+    const carpeta = carpetaRaiz.getFoldersByName(nombreCarpeta).next();
+    const archivosEnCarpeta = carpeta.getFilesByType(MimeType.GOOGLE_SHEETS);
+    while (archivosEnCarpeta.hasNext()) {
+      archivo = archivosEnCarpeta.next();
+      contador++;
+      carpetaUsada = nombreCarpeta;
+    }
   }
 
   if (contador === 0) {
-    console.log("No se encontró ningún archivo en la carpeta.");
-    log.appendRow([new Date(), "ERROR", "No se encontró archivo en Archivos_Mensuales"]);
+    SpreadsheetApp.getUi().alert("No se encontró ningún archivo en ninguna carpeta.");
+    log.appendRow([new Date(), "ERROR", "No se encontró archivo en ninguna carpeta"]);
     return;
   }
 
   if (contador > 1) {
-    console.log("Hay más de un archivo. Deja solo uno en la carpeta.");
-    log.appendRow([new Date(), "ADVERTENCIA", "Hay " + contador + " archivos en la carpeta. Solo debe haber uno."]);
+    SpreadsheetApp.getUi().alert("Hay más de un archivo en las carpetas. Deja solo uno a la vez.");
+    log.appendRow([new Date(), "ADVERTENCIA", "Hay " + contador + " archivos en las carpetas."]);
     return;
   }
 
-  console.log("Archivo encontrado: " + archivo.getName());
-  console.log("Período: " + mes + " " + anio);
-  log.appendRow([new Date(), "OK", "Archivo encontrado: " + archivo.getName() + " | Período: " + mes + " " + anio]);
-}
-
-function leerContenidoExcel() {
-  const carpetaRaiz = DriveApp.getFoldersByName(CARPETA_RAIZ).next();
-  const carpetaMensual = carpetaRaiz.getFoldersByName("Archivos_Mensuales").next();
-
-  // Abrir directamente el Google Sheets sin copiar
-  const archivos = carpetaMensual.getFilesByType(MimeType.GOOGLE_SHEETS);
-  const archivo = archivos.next();
-  const hojaDatos = SpreadsheetApp.openById(archivo.getId()).getSheets()[0];
-  const datos = hojaDatos.getDataRange().getValues();
-
-  console.log("Encabezados: " + datos[0]);
-  console.log("Fila 1: " + datos[1]);
-  console.log("Fila 2: " + datos[2]);
+  SpreadsheetApp.getUi().alert("Archivo encontrado: " + archivo.getName() + "\nCarpeta: " + carpetaUsada);
+  log.appendRow([new Date(), "OK", "Archivo encontrado: " + archivo.getName() + " | Carpeta: " + carpetaUsada]);
 }
 
 function relacionarCursos() {
@@ -66,19 +52,37 @@ function relacionarCursos() {
   const log = hoja.getSheetByName("Log_Importación");
   const mooc = hoja.getSheetByName("MOOC Coursera");
 
-  // Leer nombres de cursos de la tabla estructural
   const datosMooc = mooc.getDataRange().getValues();
   const nombresMooc = datosMooc.slice(1).map(fila => fila[1].toString().trim().toLowerCase());
 
-  // Abrir directamente el Google Sheets sin copiar
   const carpetaRaiz = DriveApp.getFoldersByName(CARPETA_RAIZ).next();
-  const carpetaMensual = carpetaRaiz.getFoldersByName("Archivos_Mensuales").next();
-  const archivos = carpetaMensual.getFilesByType(MimeType.GOOGLE_SHEETS);
-  const archivo = archivos.next();
+  const carpetas = ["Archivos_Mensuales", "Archivos_Trimestrales", "Archivos_Anuales"];
+
+  let archivo = null;
+  let contador = 0;
+
+  for (const nombreCarpeta of carpetas) {
+    const carpeta = carpetaRaiz.getFoldersByName(nombreCarpeta).next();
+    const archivosEnCarpeta = carpeta.getFilesByType(MimeType.GOOGLE_SHEETS);
+    while (archivosEnCarpeta.hasNext()) {
+      archivo = archivosEnCarpeta.next();
+      contador++;
+    }
+  }
+
+  if (contador === 0) {
+    SpreadsheetApp.getUi().alert("No se encontró ningún archivo en ninguna carpeta.");
+    return;
+  }
+
+  if (contador > 1) {
+    SpreadsheetApp.getUi().alert("Hay más de un archivo en las carpetas. Deja solo uno a la vez.");
+    return;
+  }
+
   const hojaDatos = SpreadsheetApp.openById(archivo.getId()).getSheets()[0];
   const datosExcel = hojaDatos.getDataRange().getValues();
 
-  // Comparar cursos
   let encontrados = 0;
   let noEncontrados = [];
 
@@ -91,22 +95,21 @@ function relacionarCursos() {
     }
   }
 
-  // Registrar resultados
-  console.log("Cursos encontrados: " + encontrados);
-  console.log("Cursos no encontrados: " + noEncontrados.length);
   log.appendRow([new Date(), "INFO", "Cursos encontrados: " + encontrados]);
-
   noEncontrados.forEach(nombre => {
-    console.log("No encontrado: " + nombre);
     log.appendRow([new Date(), "INCOMPATIBILIDAD", "Curso no encontrado en MOOC Coursera: " + nombre]);
   });
+
+  SpreadsheetApp.getUi().alert(
+    "Cursos encontrados: " + encontrados +
+    "\nCursos no encontrados: " + noEncontrados.length
+  );
 }
 
 function escribirDatosMensuales() {
   const hoja = SpreadsheetApp.getActiveSpreadsheet();
   const log = hoja.getSheetByName("Log_Importación");
 
-  // Buscar archivo en las tres carpetas
   const carpetaRaiz = DriveApp.getFoldersByName(CARPETA_RAIZ).next();
   const carpetas = ["Archivos_Mensuales", "Archivos_Trimestrales", "Archivos_Anuales"];
 
@@ -136,7 +139,6 @@ function escribirDatosMensuales() {
     return;
   }
 
-  // Extraer período del nombre del archivo
   const nombreArchivo = archivo.getName().toLowerCase().trim();
   const partes = nombreArchivo.split("_");
 
@@ -149,7 +151,6 @@ function escribirDatosMensuales() {
   const periodo = partes[0];
   const anio = partes[1];
 
-  // Detectar tipo de período y pestaña destino
   const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
   let pestanaDestino;
 
@@ -167,7 +168,6 @@ function escribirDatosMensuales() {
 
   const destino = hoja.getSheetByName(pestanaDestino);
 
-  // Verificar duplicados
   const datosExistentes = destino.getDataRange().getValues();
   for (let i = 1; i < datosExistentes.length; i++) {
     if (datosExistentes[i][0].toString().trim().toLowerCase() === periodo &&
@@ -178,11 +178,9 @@ function escribirDatosMensuales() {
     }
   }
 
-  // Leer datos del archivo
   const hojaDatos = SpreadsheetApp.openById(archivo.getId()).getSheets()[0];
   const datosExcel = hojaDatos.getDataRange().getValues();
 
-  // Preparar filas
   const filasParaEscribir = [];
   for (let i = 1; i < datosExcel.length; i++) {
     const fila = datosExcel[i];
@@ -190,13 +188,11 @@ function escribirDatosMensuales() {
     filasParaEscribir.push([periodo, anio, ...fila.slice(1)]);
   }
 
-  // Escribir de una sola vez
   const ultimaFila = destino.getLastRow() + 1;
   destino.getRange(ultimaFila, 1, filasParaEscribir.length, filasParaEscribir[0].length)
     .setValues(filasParaEscribir);
 
   const mensaje = "Importación completada\n" + filasParaEscribir.length + " cursos importados\nPeríodo: " + periodo + " " + anio + "\nDestino: " + pestanaDestino + "\nCarpeta: " + carpetaUsada;
-  console.log(mensaje);
   log.appendRow([new Date(), "OK", "Importación completada: " + filasParaEscribir.length + " cursos | Período: " + periodo + " " + anio + " | Destino: " + pestanaDestino]);
   SpreadsheetApp.getUi().alert(mensaje);
 }
