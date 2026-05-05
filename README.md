@@ -46,11 +46,11 @@ Drive convierte automáticamente el Excel a Google Sheets:
 
 ## Fases de desarrollo
 
-### Fase 1 — Lectura de configuración ✅
+### Fase 1 — Lectura de configuración 
 - Conexión al archivo de Google Sheets.
 - Lectura de parámetros desde la pestaña Configuración.
 
-### Fase 2 — Lectura del archivo de analíticos ✅
+### Fase 2 — Lectura del archivo de analíticos 
 - Acceso a carpetas en Google Drive.
 - Validación de archivos disponibles.
 - Apertura directa del archivo en formato Google Sheets.
@@ -58,14 +58,14 @@ Drive convierte automáticamente el Excel a Google Sheets:
 - Registro de eventos en Log_Importación.
 - Variable global `CARPETA_RAIZ` para centralizar rutas.
 
-### Fase 3 — Relación de cursos ✅
+### Fase 3 — Relación de cursos 
 - Cruce de nombres de cursos entre el archivo de Coursera
   y la tabla estructural de MOOC Coursera.
 - Detección y registro de incompatibilidades en Log_Importación.
 - Validación exitosa: 154 cursos relacionados, 0 incompatibilidades
   tras corrección de nombres.
 
-### Fase 4 — Escritura de datos ✅
+### Fase 4 — Escritura de datos 
 - Detección automática del tipo de período por nombre de archivo.
 - Escritura automática en la pestaña correcta:
   Datos_Mensuales, Datos_Trimestrales o Datos_Anuales.
@@ -78,7 +78,7 @@ Drive convierte automáticamente el Excel a Google Sheets:
   al momento de importar para garantizar coincidencias exactas
   en fórmulas de consulta.
 
-### Fase 5 — Dashboard comparativo ✅
+### Fase 5 — Dashboard comparativo 
 - Pestaña Consulta_Periodo con selector de tipo (Mensual/Trimestral/Anual),
   período y año para dos períodos a comparar.
 - Un único selector de Tipo aplica a ambos períodos simultáneamente.
@@ -90,13 +90,13 @@ Drive convierte automáticamente el Excel a Google Sheets:
 - Fórmulas con FILTER + SUM/AVERAGE/COUNTA consultando
   dinámicamente las tres hojas de datos según el tipo elegido.
 
-### Fase 6 — Mejoras de usabilidad ✅
+### Fase 6 — Mejoras de usabilidad 
 - Menú personalizado en Sheets via onOpen().
 - Alertas en pantalla para confirmaciones y errores.
 - Eliminación de configuración manual de mes y año.
 - Tres carpetas de Drive según tipo de período.
 
-### Fase 7 — Consulta por curso específico ✅
+### Fase 7 — Consulta por curso específico 
 - Pestaña Consulta_Curso con desplegable de 169 cursos.
 - Selector de Tipo (Mensual/Trimestral/Anual), Período y Año
   independientes para Período A y Período B.
