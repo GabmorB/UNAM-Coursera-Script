@@ -16,13 +16,16 @@ datos sin trabajo manual.
 El sistema opera sobre un archivo de Google Sheets con las
 siguientes pestañas:
 
-- **MOOC Coursera** — datos estructurales fijos de cada curso.
+- **MOOC Coursera** — datos estructurales fijos de cada curso (169 cursos).
 - **Datos_Mensuales** — historial acumulado mes a mes.
 - **Datos_Trimestrales** — historial acumulado por trimestre.
 - **Datos_Anuales** — historial acumulado por año.
 - **Log_Importación** — registro de errores e importaciones.
-- **Consulta_Mensual** — dashboard comparativo entre períodos mensuales.
-- **Consulta_Curso** — evolución de un curso específico en el tiempo.
+- **Consulta_Periodo** — dashboard comparativo entre dos períodos
+  cualquiera (mensual, trimestral o anual) con métricas agregadas
+  de todos los cursos.
+- **Consulta_Curso** — comparativa de un curso específico entre
+  dos períodos cualquiera (mensual, trimestral o anual).
 - **Ficha técnica de cursos** — datos técnicos de cada curso.
 - **Catálogo de expertos** — información de instructores.
 - **Lista por área** — filtro de cursos por área de conocimiento.
@@ -30,7 +33,7 @@ siguientes pestañas:
 
 ## Estructura de carpetas en Google Drive
 
-UNAM_Coursera_Analiticas/
+UNAM_Coursera_Analiticas_Test/
 ├── Archivos_Mensuales/
 ├── Archivos_Trimestrales/
 └── Archivos_Anuales/
@@ -57,10 +60,10 @@ Drive convierte automáticamente el Excel a Google Sheets:
 
 ### Fase 3 — Relación de cursos ✅
 - Cruce de nombres de cursos entre el archivo de Coursera
-y la tabla estructural de MOOC Coursera.
+  y la tabla estructural de MOOC Coursera.
 - Detección y registro de incompatibilidades en Log_Importación.
 - Validación exitosa: 154 cursos relacionados, 0 incompatibilidades
-tras corrección de nombres.
+  tras corrección de nombres.
 
 ### Fase 4 — Escritura de datos ✅
 - Detección automática del tipo de período por nombre de archivo.
@@ -71,15 +74,21 @@ tras corrección de nombres.
 - Prevención de duplicados por período y año.
 - Registro de importación completada en Log_Importación.
 - Conversión automática de Excel a Google Sheets via Drive.
+- Limpieza automática de espacios en valores de texto con `.trim()`
+  al momento de importar para garantizar coincidencias exactas
+  en fórmulas de consulta.
 
-### Fase 5 — Dashboard comparativo ✅ (parcial)
-- Pestaña Consulta_Mensual con dos selectores de período.
-- Métricas comparativas: Total Enrollments, Total Completions,
-  Complete Rate promedio, Avg Star Rating promedio y
+### Fase 5 — Dashboard comparativo ✅
+- Pestaña Consulta_Periodo con selector de tipo (Mensual/Trimestral/Anual),
+  período y año para dos períodos a comparar.
+- Un único selector de Tipo aplica a ambos períodos simultáneamente.
+- Métricas comparativas agregadas de todos los cursos:
+  Total Enrollments (suma), Total Completions (suma),
+  Complete Rate promedio, AVG Star Rating promedio y
   número de cursos.
-- Columnas de diferencia y variación porcentual automáticas.
-- Top 5 cursos por enrollments del período seleccionado.
-- Pendiente: Consulta_Trimestral y Consulta_Anual.
+- Columna de diferencia automática entre períodos.
+- Fórmulas con FILTER + SUM/AVERAGE/COUNTA consultando
+  dinámicamente las tres hojas de datos según el tipo elegido.
 
 ### Fase 6 — Mejoras de usabilidad ✅
 - Menú personalizado en Sheets via onOpen().
@@ -87,22 +96,26 @@ tras corrección de nombres.
 - Eliminación de configuración manual de mes y año.
 - Tres carpetas de Drive según tipo de período.
 
-### Fase 7 — Consulta por curso específico ✅ (parcial)
-- Pestaña Consulta_Curso con desplegable de cursos.
-- Muestra evolución mensual del curso seleccionado.
-- Métricas: Total Enrollments, Total Completions,
-  Complete Rate y Avg Star Rating por período.
-- Pendiente: integrar datos trimestrales y anuales.
+### Fase 7 — Consulta por curso específico ✅
+- Pestaña Consulta_Curso con desplegable de 169 cursos.
+- Selector de Tipo (Mensual/Trimestral/Anual), Período y Año
+  independientes para Período A y Período B.
+- Métricas comparativas del curso seleccionado:
+  Total Enrollments, Total Completions, Complete Rate
+  y AVG Star Rating.
+- Columna de diferencia automática entre períodos.
+- Fórmulas con FILTER consultando dinámicamente las tres
+  hojas de datos según el tipo elegido en cada período.
+- Validado con datos mensuales, trimestrales y anuales.
 
-### Fase 8 — Dashboards trimestrales y anuales (próximamente)
-- Pestaña Consulta_Trimestral — comparativa entre trimestres.
-- Pestaña Consulta_Anual — comparativa entre años completos.
-- Integración de datos trimestrales y anuales en Consulta_Curso.
-
-### Fase 9 — Producción y diseño (próximamente)
-- Migración de carpeta de prueba a carpeta oficial del equipo.
-- Aplicar guía de estilo del Gantt MOOC 2020 (CUAIEED).
-- Función principal unificada para ejecutar flujo completo.
+### Fase 8 — Producción y diseño (próximamente)
+- Migración de carpeta de prueba a carpeta oficial del equipo
+  (cambiar `CARPETA_RAIZ` de `UNAM_Coursera_Analiticas_Test`
+  a la carpeta oficial).
+- Aplicar guía de estilo del Gantt MOOC 2020 (CUAIEED):
+  colores azul marino y rojo, logos de CUAIEED y MOOC UNAM.
+- Función principal unificada para ejecutar flujo completo
+  con un solo botón.
 
 ## Tecnologías
 - Google Apps Script (JavaScript)
@@ -127,3 +140,11 @@ tras corrección de nombres.
 - `setValues` en lugar de `appendRow` para escritura optimizada.
 - El script busca en las tres carpetas simultáneamente — solo
   puede haber un archivo en total entre las tres carpetas.
+- Los años en los desplegables de consulta se gestionan
+  manualmente — agregar el año a la validación de datos
+  cuando se importe un nuevo año.
+- Los rangos de fórmulas están definidos hasta la fila 10000
+  para soportar crecimiento de la base de datos.
+- Las fórmulas de Consulta_Curso y Consulta_Periodo usan
+  `VALUE()` sobre el selector de año para garantizar
+  coincidencia con valores numéricos en las hojas de datos.

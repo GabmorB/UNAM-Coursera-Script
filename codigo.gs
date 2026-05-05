@@ -185,7 +185,8 @@ function escribirDatosMensuales() {
   for (let i = 1; i < datosExcel.length; i++) {
     const fila = datosExcel[i];
     if (fila[1] === "" || fila[1] === null) continue;
-    filasParaEscribir.push([periodo, anio, ...fila.slice(1)]);
+    //MODIFICACIÓN: trim() a todos los valores de texto al importar
+    filasParaEscribir.push([periodo, anio, ...fila.slice(1).map(v => typeof v === "string" ? v.trim() : v)]);
   }
 
   const ultimaFila = destino.getLastRow() + 1;
